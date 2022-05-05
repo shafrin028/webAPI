@@ -4,52 +4,66 @@ const router = express.Router();
 
 router.use(express.json());
 
+// get all cats from database
 router.get('/', async (req, res) => {
-    let cat = await Cat.find();
-    return res.send(cat);
+    try{
+        let cat = await Cat.find();
+        res.send(cat);
+    }
+    catch(ex) {
+        res.status(500).send("Error" + ex.message);
+    }   
 })
 
+// get single cat detail by id
 router.get('/:catId', async (req, res) => {
-    let cat = await Cat.findById(req.params.catId);
-    if(!cat) {
-        return res.status(404).send("Given ID is not exist")
+    try {
+        let cat = await Cat.findById(req.params.catId);
+        if(!cat) {
+            return res.status(404).send("Given ID is not exist")
+        }
+        res.status(200).send(cat);
     }
-
-    return res.status(200).send(cat);
+    catch(ex) {
+        res.status(500).send("Error" + ex.message);
+    }
 })
 
+// add cat to database
 router.post('/', async (req, res) => {
-    /* if(!req.body.name || !req.body.age || !req.body.sex || !req.body.price) {
-        return res.status(404).send("Please fill required fields");
-    } */
-
-    if (!req.body.name) {
-          return res.status(400).send("Not all mandatory values are sent");
+    try{
+        if(!req.body.name || !req.body.age || !req.body.sex || !req.body.price || !req.body.contact || !req.body.color || !req.body.breed) {
+            return res.status(404).send("Please fill required fields");
+        } 
+    
+        let cat = new Cat({
+            name: req.body.name,
+            age: req.body.age,
+            color: req.body.color,
+            sex: req.body.sex,
+            breed: req.body.breed,
+            origin: req.body.origin,
+            imgUrl: req.body.imgUrl,
+            locationUrl: req.body.locationUrl,
+            price: req.body.price,
+            ownerName: req.body.ownerName,
+            contact: req.body.contact
+        });
+        cat = await cat.save();
+        res.send(cat);
     }
-
-    let cat = new Cat({
-        name: req.body.name,
-        age: req.body.age,
-        color: req.body.color,
-        sex: req.body.sex,
-        breed: req.body.breed,
-        origin: req.body.origin,
-        imgUrl: req.body.imgUrl,
-        locationUrl: req.body.locationUrl,
-        price: req.body.price,
-        ownerName: req.body.ownerName,
-        contact: req.body.contact
-    });
-
-    cat = await cat.save();
-    res.send(cat);
+    catch(ex) {
+        res.status(500).send("Error" + ex.message);
+    }
+    
 });
 
+//update a paticular cat details
 router.put('/:catId', async (req, res) => {
     try{
         let cat = await Cat.findById(req.params.catId);
         if(!cat) {
-            res.status(404).send("id is not exist");
+            return res.status(404).send("id is not exist");
         }
 
         if(!req.body.name) {
@@ -64,13 +78,18 @@ router.put('/:catId', async (req, res) => {
     }
 })
 
+//delete a cat from database
 router.delete('/:catId', async (req, res) => {
-    let cat = await Cat.findByIdAndDelete({ _id: req.params.catId});
-    if(!cat) {
-        return res.status(404).send("Not exist in the system");
+    try{
+        let cat = await Cat.findByIdAndDelete({ _id: req.params.catId});
+        if(!cat) {
+            return res.status(404).send("Not exist in the system");
+        }
+        res.send(cat);
     }
-
-    res.send(cat);
+    catch(ex) {
+        res.status(500).send("Error" + ex.message);
+    }
 })
 
 module.exports = router;
